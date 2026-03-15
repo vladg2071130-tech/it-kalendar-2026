@@ -932,4 +932,135 @@
         }
     </script>
 </body>
+    <script>
+// ========== СІСТЭМА БАЛАЎ І ЎЗРОЎНЯЎ ==========
+let userStats = JSON.parse(localStorage.getItem('userStats')) || {
+    points: 0,
+    level: 1,
+    daysCompleted: 0,
+    achievements: [],
+    streak: 0,
+    lastVisit: null
+};
+
+const levelThresholds = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000];
+const levelNames = [
+    "Пачатковец",
+    "Даследчык", 
+    "Знаўца",
+    "Эксперт",
+    "Майстар",
+    "Прафесар",
+    "Акадэмік",
+    "Легенда",
+    "Міф",
+    "Бог IT"
+];
+
+function addPoints(points) {
+    userStats.points += points;
+    
+    // Праверка павышэння ўзроўню
+    let newLevel = 1;
+    for (let i = 0; i < levelThresholds.length; i++) {
+        if (userStats.points >= levelThresholds[i]) {
+            newLevel = i + 1;
+        }
+    }
+    
+    if (newLevel > userStats.level) {
+        userStats.level = newLevel;
+        showNotification(`🎉 Віншую! Ты дасягнуў ${newLevel} ўзроўню: ${levelNames[newLevel-1]}`);
+    }
+    
+    localStorage.setItem('userStats', JSON.stringify(userStats));
+    updateStatsDisplay();
+}
+
+function showNotification(message) {
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #1e3c72;
+        color: white;
+        padding: 15px 25px;
+        border-radius: 10px;
+        border-left: 5px solid #ffd966;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 10000;
+        animation: slideIn 0.5s;
+    `;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        notification.style.animation = 'slideOut 0.5s';
+        setTimeout(() => notification.remove(), 500);
+    }, 3000);
+}
+
+function updateStatsDisplay() {
+    // Ствараем або абнаўляем панэль статыстыкі
+    let statsDiv = document.getElementById('userStats');
+    if (!statsDiv) {
+        statsDiv = document.createElement('div');
+        statsDiv.id = 'userStats';
+        statsDiv.style.cssText = `
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            margin: 15px;
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 15px;
+        `;
+        document.querySelector('.container').insertBefore(statsDiv, document.querySelector('.month-nav'));
+    }
+    
+    statsDiv.innerHTML = `
+        <div class="stat-item">
+            <div class="stat-number">${userStats.points}</div>
+            <div>балаў</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">${userStats.level}</div>
+            <div>ўзровень</div>
+            <div style="font-size:0.8em">${levelNames[userStats.level-1]}</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">${userStats.daysCompleted}</div>
+            <div>дзён</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">${userStats.streak}</div>
+            <div>дзён запар</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-number">${Math.round((userStats.daysCompleted/365)*100)}%</div>
+            <div>прагрэс</div>
+        </div>
+    `;
+}
+
+// Дадаем анімацыю
+const style = document.createElement('style');
+style.textContent = `
+    @keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+    @keyframes slideOut {
+        from { transform: translateX(0); opacity: 1; }
+        to { transform: translateX(100%); opacity: 0; }
+    }
+`;
+document.head.appendChild(style);
+
+// Выклікаем пры старце
+updateStatsDisplay();
+</script>
 </html>
