@@ -894,7 +894,51 @@
             document.getElementById('panelResult').className = 'result';
             document.getElementById('checkBtn').disabled = true;
         }
+// ========== СІСТЭМА ДАСЯГНЕННЯЎ ==========
+function addAchievement(id, name) {
+    if (!userStats.achievements.includes(id)) {
+        userStats.achievements.push(id);
+        showNotification(`🏆 Дасягненне: ${name}`);
+        // Бонусныя балы за дасягненне
+        if (id === 'streak_7') addPoints(20);
+        else if (id === 'streak_30') addPoints(50);
+        else if (id === 'streak_100') addPoints(100);
+    }
+}
 
+// ========== СІСТЭМА СТРЫКА (ДЗЁН ЗАПАР) ==========
+function updateStreak() {
+    const today = new Date().toDateString();
+    
+    if (!userStats.lastVisit) {
+        userStats.streak = 1;
+    } else {
+        const lastDate = new Date(userStats.lastVisit);
+        const currentDate = new Date();
+        
+        const diffTime = Math.abs(currentDate - lastDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+            userStats.streak++;
+            
+            // Дасягненні за стрык
+            if (userStats.streak === 7) {
+                addAchievement('streak_7', '🎯 7 дзён запар');
+            } else if (userStats.streak === 30) {
+                addAchievement('streak_30', '🔥 30 дзён запар');
+            } else if (userStats.streak === 100) {
+                addAchievement('streak_100', '⚡ 100 дзён запар');
+            }
+        } else if (diffDays > 1) {
+            userStats.streak = 1;
+        }
+    }
+    
+    userStats.lastVisit = today;
+    localStorage.setItem('userStats', JSON.stringify(userStats));
+    updateStatsDisplay();
+}
        // ========== СТАРТ ==========
 window.onload = function() {
     renderWeekdays();
