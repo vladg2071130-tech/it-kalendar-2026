@@ -884,35 +884,6 @@
             document.getElementById('checkBtn').disabled = false;
         }
 
-        function checkAnswer() {
-            if(!selectedDate || selectedOpt===null) return;
-            let test = tests[selectedDate];
-            if(!test) return;
-            let correct = (selectedOpt === test.correct);
-            let resDiv = document.getElementById('panelResult');
-            if(correct) {
-                resDiv.innerHTML = '✅ Правільна!';
-                resDiv.className = 'result correct';
-                if(!results[selectedDate]) {
-                    results[selectedDate] = {passed:true};
-                    localStorage.setItem('res2026full', JSON.stringify(results));
-                    renderCalendar();
-                    updateStats();
-                }
-            } else {
-                resDiv.innerHTML = '❌ Неправільна';
-                resDiv.className = 'result incorrect';
-            }
-            for(let j=0; j<4; j++) {
-                let opt = document.getElementById('opt'+j);
-                if(opt) {
-                    if(j === test.correct) opt.classList.add('correct');
-                    else if(j === selectedOpt && !correct) opt.classList.add('incorrect');
-                }
-            }
-            document.getElementById('checkBtn').disabled = true;
-        }
-
         function resetTest() {
             selectedOpt = null;
             for(let j=0; j<4; j++) {
@@ -924,18 +895,17 @@
             document.getElementById('checkBtn').disabled = true;
         }
 
-        // ========== СТАРТ ==========
-        window.onload = function() {
-            renderWeekdays();
-            renderMonthButtons();
-            renderCalendar();
-            updateStats();
-        }
+       // ========== СТАРТ ==========
+window.onload = function() {
+    renderWeekdays();
+    renderMonthButtons();
+    renderCalendar();
+    updateStats();
+    updateStatsDisplay();
+    updateStreak();
+}
     </script>
 <script>
-// ========== АСНОЎНЫЯ ЗМЕННЫЯ ==========
-let results = JSON.parse(localStorage.getItem('res2026full')) || {};
-let currentMonth = 0, currentYear = 2026, selectedDate = null, selectedOpt = null;
 
 // ========== СІСТЭМА БАЛАЎ І ЎЗРОЎНЯЎ ==========
 let userStats = JSON.parse(localStorage.getItem('userStats')) || {
@@ -1125,21 +1095,6 @@ style.textContent = `
     }
 `;
 document.head.appendChild(style);
-
-// ========== ПАШЫРАНЫ СТАРТ ==========
-window.onload = function() {
-    renderWeekdays();
-    renderMonthButtons();
-    renderCalendar();
-    updateStats();
-    updateStatsDisplay();
-    updateStreak(); // Абнаўляем стрык пры загрузцы
-}
-
-// ========== УСЕ АСТАЎШЫЯСЯ ФУНКЦЫІ (ЯНЫ ЎЖО ЁСЬЦЬ У АСНОЎНЫМ КОДЗЕ) ==========
-// (Тут павінны быць усе твае астатнія функцыі: getTest, isPassed, updateStats, 
-// renderWeekdays, renderCalendar, changeMonth, goToMonth, renderMonthButtons,
-// openPanel, closePanel, selectOption, resetTest)
 
 </script>
 </body>
