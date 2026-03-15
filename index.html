@@ -931,8 +931,11 @@
             updateStats();
         }
     </script>
-</body>
-    <script>
+<script>
+// ========== АСНОЎНЫЯ ЗМЕННЫЯ ==========
+let results = JSON.parse(localStorage.getItem('res2026full')) || {};
+let currentMonth = 0, currentYear = 2026, selectedDate = null, selectedOpt = null;
+
 // ========== СІСТЭМА БАЛАЎ І ЎЗРОЎНЯЎ ==========
 let userStats = JSON.parse(localStorage.getItem('userStats')) || {
     points: 0,
@@ -945,18 +948,11 @@ let userStats = JSON.parse(localStorage.getItem('userStats')) || {
 
 const levelThresholds = [0, 100, 250, 500, 1000, 2000, 3500, 5000, 7500, 10000];
 const levelNames = [
-    "Пачатковец",
-    "Даследчык", 
-    "Знаўца",
-    "Эксперт",
-    "Майстар",
-    "Прафесар",
-    "Акадэмік",
-    "Легенда",
-    "Міф",
-    "Бог IT"
+    "Пачатковец", "Даследчык", "Знаўца", "Эксперт", "Майстар",
+    "Прафесар", "Акадэмік", "Легенда", "Міф", "Бог IT"
 ];
 
+// ========== ФУНКЦЫІ ДЛЯ БАЛАЎ ==========
 function addPoints(points) {
     userStats.points += points;
     
@@ -1046,7 +1042,76 @@ function updateStatsDisplay() {
     `;
 }
 
-// Дадаем анімацыю
+// ========== СІСТЭМА СТРЫКА (ДЗЁН ЗАПАР) ==========
+function updateStreak() {
+    const today = new Date().toDateString();
+    
+    if (!userStats.lastVisit) {
+        userStats.streak = 1;
+    } else {
+        const lastDate = new Date(userStats.lastVisit);
+        const currentDate = new Date();
+        
+        const diffTime = Math.abs(currentDate - lastDate);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        if (diffDays === 1) {
+            userStats.streak++;
+        } else if (diffDays > 1) {
+            userStats.streak = 1;
+        }
+    }
+    
+    userStats.lastVisit = today;
+    localStorage.setItem('userStats', JSON.stringify(userStats));
+    updateStatsDisplay();
+}
+
+// ========== ПАЛІПШАНАЯ ФУНКЦЫЯ ПРАВЕРКІ АДКАЗУ ==========
+function checkAnswer() {
+    if(!selectedDate || selectedOpt===null) return;
+    
+    let test = tests[selectedDate];
+    if(!test) return;
+    
+    let correct = (selectedOpt === test.correct);
+    let resDiv = document.getElementById('panelResult');
+    
+    if(correct) {
+        resDiv.innerHTML = '✅ Правільна! +10 балаў';
+        resDiv.className = 'result correct';
+        
+        // Калі гэты дзень яшчэ не быў пройдзены
+        if (!results[selectedDate]) {
+            addPoints(10); // Дадаем 10 балаў
+            userStats.daysCompleted++;
+            
+            // Захоўваем вынік
+            results[selectedDate] = {passed: true};
+            localStorage.setItem('res2026full', JSON.stringify(results));
+            
+            // Абнаўляем каляндар і статыстыку
+            renderCalendar();
+            updateStats();
+            updateStatsDisplay();
+        }
+    } else {
+        resDiv.innerHTML = '❌ Неправільна';
+        resDiv.className = 'result incorrect';
+    }
+    
+    // Падсвечванне варыянтаў
+    for(let j=0; j<4; j++) {
+        let opt = document.getElementById('opt'+j);
+        if(opt) {
+            if(j === test.correct) opt.classList.add('correct');
+            else if(j === selectedOpt && !correct) opt.classList.add('incorrect');
+        }
+    }
+    document.getElementById('checkBtn').disabled = true;
+}
+
+// ========== АНІМАЦЫЯ ==========
 const style = document.createElement('style');
 style.textContent = `
     @keyframes slideIn {
@@ -1060,7 +1125,21 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// Выклікаем пры старце
-updateStatsDisplay();
+// ========== ПАШЫРАНЫ СТАРТ ==========
+window.onload = function() {
+    renderWeekdays();
+    renderMonthButtons();
+    renderCalendar();
+    updateStats();
+    updateStatsDisplay();
+    updateStreak(); // Абнаўляем стрык пры загрузцы
+}
+
+// ========== УСЕ АСТАЎШЫЯСЯ ФУНКЦЫІ (ЯНЫ ЎЖО ЁСЬЦЬ У АСНОЎНЫМ КОДЗЕ) ==========
+// (Тут павінны быць усе твае астатнія функцыі: getTest, isPassed, updateStats, 
+// renderWeekdays, renderCalendar, changeMonth, goToMonth, renderMonthButtons,
+// openPanel, closePanel, selectOption, resetTest)
+
 </script>
+</body>
 </html>
